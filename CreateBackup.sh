@@ -9,7 +9,7 @@ function BackupEFI()
 		echo "Not EFI partition found - skipped"
 	else
 		echo $EFI_DEV
-		# partclone.vfat -c -s $EFI_DEV | gzip -c -9 > ./"${BACKUP_NAME}"/efi.img.gz
+		partclone.vfat -c -s $EFI_DEV | gzip -c -9 > ./"${BACKUP_NAME}"/efi.img.gz
 	fi
 }
 #
@@ -22,7 +22,7 @@ function BackupWINMSR()
 		echo "Not WINMSR partition found - skipped"
 	else
 		echo $WINMSR_DEV
-		# partclone.dd -s $WINMSR_DEV | gzip -c -9 > ./"${BACKUP_NAME}"/winmsr.img.gz
+		partclone.dd -s $WINMSR_DEV | gzip -c -9 > ./"${BACKUP_NAME}"/winmsr.img.gz
 	fi
 }
 ## WINOS partition backup function
@@ -33,7 +33,7 @@ function BackupWINOS()
 		echo "Not WINOS partition found - skipped"
 	else
 		echo $WINOS_DEV
-		# partclone.ntfs -c -s $WINOS_DEV | gzip -c -5 > ./"${BACKUP_NAME}"/winos.img.gz
+		partclone.ntfs -c -s $WINOS_DEV | gzip -c -9 > ./"${BACKUP_NAME}"/winos.img.gz
 	fi
 }
 ## WINREC partition backup function
@@ -44,7 +44,7 @@ function BackupWINREC()
 		echo "Not WINREC partition found - skipped"
 	else
 		echo $WINREC_DEV
-		# partclone.ntfs -c -s $WINREC_DEV | gzip -c -9 > ./"${BACKUP_NAME}"/winrec.img.gz
+		partclone.ntfs -c -s $WINREC_DEV | gzip -c -9 > ./"${BACKUP_NAME}"/winrec.img.gz
 	fi
 }
 ## WIND partition backup function
@@ -55,7 +55,7 @@ function BackupWINDATA()
 		echo "Not WINDATA partition found - skipped"
 	else
 		echo $WINDATA_DEV
-		# partclone.ntfs -c -s $WINDATA_DEV | gzip -c -6 > ./"${BACKUP_NAME}"/windata.img.gz
+		partclone.ntfs -c -s $WINDATA_DEV | gzip -c -9 > ./"${BACKUP_NAME}"/windata.img.gz
 	fi
 }
 ## Main procedure
@@ -78,11 +78,11 @@ if [[ -z "${BACKUP_NAME}" ]]; then
 	exit 1
 else
 	mkdir ./"${BACKUP_NAME}"
-	BackupEFI
-	BackupWINMSR
-	BackupWINOS
-	BackupWINREC
-	BackupWINDATA
+	# BackupEFI
+	# BackupWINMSR
+	# BackupWINOS
+	# BackupWINREC
+	# BackupWINDATA
 fi
 ##
 
