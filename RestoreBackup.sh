@@ -1,9 +1,10 @@
 #!/bin/bash
 ## EFI partition restore function
 #
+PARTITION_LABELS=("EFI" "WINMSR" "WINOS" "WINREC" "WINDATA")
 function RestoreEFI()
 {
-	EFI_DEV=$(blkid | grep EFI | awk '{print $1}' | sed 's/://g')
+	EFI_DEV=$(blkid | grep -i ${PARTITION_LABELS[0]} | grep vfat | awk '{print $1}' | sed 's/://g')
 	if [ ! -z "${EFI_DEV}" ]; then
 		echo "EFI partition device found."
 		if [ -f "$BACKUP_NAME/efi.img.gz" ]; then
@@ -22,7 +23,7 @@ function RestoreEFI()
 #
 function RestoreWINMSR()
 {
-	WINMSR_DEV=$(blkid | grep WINMSR | awk '{print $1}' | sed 's/://g')
+	WINMSR_DEV=$(blkid | grep -i ${PARTITION_LABELS[1]} | awk '{print $1}' | sed 's/://g')
 	if [ ! -z "${WINMSR_DEV}" ]; then
 		echo "WINMSR partition device found."
 		if [ -f "$BACKUP_NAME/winmsr.img.gz" ]; then
@@ -41,7 +42,7 @@ function RestoreWINMSR()
 #
 function RestoreWINOS()
 {
-	WINOS_DEV=$(blkid | grep WINOS | awk '{print $1}' | sed 's/://g')
+	WINOS_DEV=$(blkid | grep -i ${PARTITION_LABELS[2]} | grep ntfs | awk '{print $1}' | sed 's/://g')
 	if [ ! -z "${WINOS_DEV=}" ]; then
 		echo "WINOS partition device found."
 		if [ -f "$BACKUP_NAME/winos.img.gz" ]; then
@@ -61,7 +62,7 @@ function RestoreWINOS()
 #
 function RestoreWINREC()
 {
-	WINREC_DEV=$(blkid | grep WINREC | awk '{print $1}' | sed 's/://g')
+	WINREC_DEV=$(blkid | grep -i ${PARTITION_LABELS[3]} | grep ntfs | awk '{print $1}' | sed 's/://g')
 	if [ ! -z "${WINREC_DEV=}" ]; then
 		echo "WINREC partition device found."
 		if [ -f "$BACKUP_NAME/winrec.img.gz" ]; then
@@ -81,7 +82,7 @@ function RestoreWINREC()
 #
 function RestoreWINDATA()
 {
-	WINDATA_DEV=$(blkid | grep WINDATA | awk '{print $1}' | sed 's/://g')
+	WINDATA_DEV=$(blkid | grep -i ${PARTITION_LABELS[4]} | grep ntfs | awk '{print $1}' | sed 's/://g')
 	if [ ! -z "${WINDATA_DEV=}" ]; then
 		echo "WINDATA partition device found."
 		if [ -f "$BACKUP_NAME/windata.img.gz" ]; then
@@ -114,11 +115,11 @@ echo "All required commands are available."
 read -p "Enter backup name: " BACKUP_NAME
 if [ -d $BACKUP_NAME ] && [ ! -z "${BACKUP_NAME}" ]; then
 	echo "Backup directory found."
-	# RestoreEFI
-	# RestoreWINMSR
-	# RestoreWINOS
-	# RestoreWINREC
-	# RestoreWINDATA
+	RestoreEFI
+	RestoreWINMSR
+	RestoreWINOS
+	RestoreWINREC
+	RestoreWINDATA
 else
 	echo "Backup directory doesn't exist - please try again - exiting..."
 	exit 1

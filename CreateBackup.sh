@@ -1,14 +1,15 @@
 #!/bin/bash
+#
+PARTITION_LABELS=("EFI" "WINMSR" "WINOS" "WINREC" "WINDATA")
 ## Backup functions
 ## EFI partition backup function
-#
 function BackupEFI()
 {
-	EFI_DEV=$(blkid | grep EFI | awk '{print $1}' | sed 's/://g')
+	EFI_DEV=$(blkid | grep -i ${PARTITION_LABELS[0]} | grep vfat |awk '{print $1}' | sed 's/://g')
 	if [[ -z "${EFI_DEV}" ]]; then
 		echo "Not EFI partition found - skipped"
 	else
-		echo $EFI_DEV
+		echo "EFI partition found"
 		partclone.vfat -c -s $EFI_DEV | gzip -c -9 > ./"${BACKUP_NAME}"/efi.img.gz
 	fi
 }
@@ -17,44 +18,44 @@ function BackupEFI()
 #
 function BackupWINMSR()
 {
-	WINMSR_DEV=$(blkid | grep WINMSR | awk '{print $1}' | sed 's/://g')
+	WINMSR_DEV=$(blkid | grep -i ${PARTITION_LABELS[1]} | awk '{print $1}' | sed 's/://g')
 	if [[ -z "${WINMSR_DEV}" ]]; then
 		echo "Not WINMSR partition found - skipped"
 	else
-		echo $WINMSR_DEV
+		echo "WINMSR partition found"
 		partclone.dd -s $WINMSR_DEV | gzip -c -9 > ./"${BACKUP_NAME}"/winmsr.img.gz
 	fi
 }
 ## WINOS partition backup function
 function BackupWINOS()
 {
-	WINOS_DEV=$(blkid | grep WINOS | awk '{print $1}' | sed 's/://g')
+	WINOS_DEV=$(blkid | grep -i ${PARTITION_LABELS[2]} | grep ntfs | awk '{print $1}' | sed 's/://g')
 	if [[ -z "${WINOS_DEV}" ]]; then
 		echo "Not WINOS partition found - skipped"
 	else
-		echo $WINOS_DEV
+		echo "WINOS partition found"
 		partclone.ntfs -c -s $WINOS_DEV | gzip -c -9 > ./"${BACKUP_NAME}"/winos.img.gz
 	fi
 }
 ## WINREC partition backup function
 function BackupWINREC()
 {
-	WINREC_DEV=$(blkid | grep WINREC | awk '{print $1}' | sed 's/://g')
+	WINREC_DEV=$(blkid | grep -i ${PARTITION_LABELS[3]} | grep ntfs | awk '{print $1}' | sed 's/://g')
 	if [[ -z "${WINREC_DEV}" ]]; then
 		echo "Not WINREC partition found - skipped"
 	else
-		echo $WINREC_DEV
+		echo "WINREC partition found"
 		partclone.ntfs -c -s $WINREC_DEV | gzip -c -9 > ./"${BACKUP_NAME}"/winrec.img.gz
 	fi
 }
 ## WIND partition backup function
 function BackupWINDATA()
 {
-	WINDATA_DEV=$(blkid | grep WINDATA | awk '{print $1}' | sed 's/://g')
+	WINDATA_DEV=$(blkid | grep -i ${PARTITION_LABELS[4]} |  grep ntfs|  awk '{print $1}' | sed 's/://g')
 	if [[ -z "${WINDATA_DEV}" ]]; then
 		echo "Not WINDATA partition found - skipped"
 	else
-		echo $WINDATA_DEV
+		echo "WINDATA partition found"
 		partclone.ntfs -c -s $WINDATA_DEV | gzip -c -9 > ./"${BACKUP_NAME}"/windata.img.gz
 	fi
 }
@@ -85,4 +86,3 @@ else
 	# BackupWINDATA
 fi
 ##
-
