@@ -1,0 +1,11 @@
+##BACKUP AND RESTORE LVM metadata for recreate LVM structure
+#
+##
+BACKUP:
+pvdisplay /dev/sda3 | grep UUID > PV_UUID.txt
+vgcfgbackup -f ./vg_backup vg
+#
+## RESTORE
+pvcreate --uuid "Yea0nQ-gKZ2-eHGB-BdMR-VuFU-7QGN-b5owPk"  --norestorefile  /dev/sda3
+vgcfgrestore -f vg_backup vg
+#

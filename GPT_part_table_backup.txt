@@ -1,0 +1,5 @@
+creation
+dd if=/dev/$ihd of=backup.img bs=512 count=34 
+
+restore
+ dd if=backup.img of=$tgt_hd_file
