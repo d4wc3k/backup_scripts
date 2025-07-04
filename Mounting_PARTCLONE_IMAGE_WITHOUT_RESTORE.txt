@@ -1,0 +1,19 @@
+## MOUNT partclone image without restoring
+################################################################################################################
+## Restore image to file form aerchive
+cat $PARTCLONE_IMAGE_FILE | gzip -d -c | partclone.restore -C -s - -O $TO_MOUNT_IMAGE_FILE
+pigz -d -c "${FILE_NAME}"   | partclone.restore -C -s - -O $TO_MOUNT_IMAGE_FILE
+## get loop device for image file
+losesetup -f
+losesetup -P /dev/loop14 $TO_MOUNT_IMAGE_FILE
+# mounting commands
+mount -o loop -t $FS_TYPE $TO_MOUNT_IMAGE_FILE $MOUNT_POINT
+ntfs-3g /dev/your_NTFS_partition /mount/point
+ntfsfix /dev/loop14
+/media/ubuntu/DC/OS_BACKUP/TEST
+#
+#################################################################################################################
+## Umount
+umount $MOUNT_POINT
+losesetu- -d /dev/loop14
+################################################################################################################
