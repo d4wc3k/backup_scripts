@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 ## PARTITIONS LABELS for backup
-PARTITION_LABELS=("EFI" "WINMSR" "WINOS" "WINREC" "WINDATA")
+PARTITION_LABELS=("EFI" "WINMSR" "WINOS" "WINREC" "swap")
 ## Main disk
 MAIN_DISK="/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S4EWNF0M910268J"
 #
@@ -33,7 +33,7 @@ do
 	FILE_NAME="$(echo ${LABEL} | tr '[:upper:]' '[:lower:]').img.gz"
 	#
 	FS_TYPE=$(blkid -s TYPE -o value ${DEV_PATH})
-	if [[ -z "${FS_TYPE}" ]];
+	if [ -z "${FS_TYPE}" ] || [ "${FS_TYPE}" = "swap" ];
 	then
 		## 7z compression
 		# partclone.dd  -z 10485760  -s "${DEV_PATH}" --output - | 7z a -t7z "${FILE_NAME}" -si -m0=lzma2 -mx=1 -mfb=64 -md512m -mmt8

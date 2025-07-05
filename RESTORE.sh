@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 ## PARTITIONS LABELS
-PARTITION_LABELS=("EFI" "WINMSR" "WINOS" "WINREC" "WINDATA")
+PARTITION_LABELS=("EFI" "WINMSR" "WINOS" "WINREC" "swap")
 ##
 ## MAIN 
 ################################################################################################################
@@ -50,7 +50,7 @@ do
 	if [[ -f ${FILE_NAME} ]];
 	then
 		FS_TYPE=$(blkid -s TYPE -o value ${DEV_PATH})
-		if [[ -z "${FS_TYPE}" ]];
+		if [ -z "${FS_TYPE}" ] || [ "${FS_TYPE}" = "swap" ];
 		then
 			## 7z compression
 			# 7z x -so "${FILE_NAME}" | partclone.dd -z 10485760 --source - -o "${DEV_PATH}"
