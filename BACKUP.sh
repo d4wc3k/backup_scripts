@@ -70,10 +70,15 @@ chown 1000:1000 ${TABLE_BACKUP_FILE_NAME}
 ################################################################################################################
 #
 ## Backup LVM metadata configuration (OPTIONAL)
-# LVM_DEVICE="/dev/nvme1n1p6"
+# CRYPT_DEV="/dev/xxxY"
+# LVM_DEVICE="/dev/mapper/ZZZ"
 # VG_NAME="vg"
-# pvdisplay "${LVM_DEVICE}" | grep UUID > PV_UUID.txt
-# vgcfgbackup -f VG_METADATA.backup "${VG_NAME}"
+# #
+# blkid -s PARTUUID -o value ${CRYPT_DEV} > PARTUUID_CRYPT_DEV.txt
+# blkid -s UUID -o value ${CRYPT_DEV} > UUID_CRYPT_DEV.txt
+# blkid -s UUID -o value ${LVM_DEVICE} > UUID_LVM_DEVICE.txt
+# #
+# vgcfgbackup -f VG_METADATA.backup "${VG_NAME}"s
 # chown 1000:1000 PV_UUID.txt
 # chown 1000:1000 VG_METADATA.backup
 #
