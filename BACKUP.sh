@@ -1,9 +1,17 @@
 #!/bin/bash
 #
 ## PARTITIONS LABELS for backup
-PARTITION_LABELS=("EFI" "WINMSR" "WINOS" "WINREC" "swap")
-## Main disk
-MAIN_DISK="/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S4EWNF0M910268J"
+PARTITION_LABELS=("")
+## DISKs devices names found in "/dev/disk/by-id/*"
+MAIN_DISK_NAME="nvme-Samsung_SSD_970_EVO_Plus_1TB_S4EWNF0M910268J"
+SECOND_DISK_NAME="nvme-Samsung_SSD_980_1TB_S649NJ0R214022Y"
+#
+## LUKS encrypted partition labels ( optional )
+#
+# MAIN_CRYPT_LABEL="rcrypt"
+# SECOND_CRYPT_LABEL="dcrypt"
+# LVM_DECRYPTED_NAME="lvm_unencrypted"
+# VG_NAME="vg"
 #
 ## MAIN
 ################################################################################################################
@@ -62,24 +70,56 @@ do
 done
 ################################################################################################################
 ## BACKUP of GPT Partition table
+# MAIN DISK
+echo "Backup main partition table..."
+MAIN_DISK="/dev/disk/by-id/${MAIN_DISK_NAME}"
+dd if=${MAIN_DISK} of="${MAIN_DISK_NAME}_table.backup" bs=512 count=34 status=progress
+sfdisk --dump "${MAIN_DISK}" > "${MAIN_DISK_NAME}_dump.txt"
+# SECOND DISK
+echo "Backup second partition table..."
+SECOND_DISK="/dev/disk/by-id/${SECOND_DISK_NAME}"
+dd if=${SECOND_DISK} of="${SECOND_DISK_NAME}_table.backup" bs=512 count=34 status=progress
+sfdisk --dump "${SECOND_DISK}" > "${SECOND_DISK_NAME}_dump.txt"
+echo "Syncing..."
+sync
 #
-TABLE_BACKUP_FILE_NAME="$(basename ${MAIN_DISK})_table.backup"
-dd if=${MAIN_DISK} of="${TABLE_BACKUP_FILE_NAME}" bs=512 count=34 status=progress && sync
-chown 1000:1000 ${TABLE_BACKUP_FILE_NAME}
+chown 1000:1000 *_table.backup
+chown 1000:1000 *_dump.txt
 #
 ################################################################################################################
 #
 ## Backup LVM metadata configuration (OPTIONAL)
-# CRYPT_DEV="/dev/xxxY"
-# LVM_DEVICE="/dev/mapper/ZZZ"
-# VG_NAME="vg"
-# #
-# blkid -s PARTUUID -o value ${CRYPT_DEV} > PARTUUID_CRYPT_DEV.txt
-# blkid -s UUID -o value ${CRYPT_DEV} > UUID_CRYPT_DEV.txt
-# blkid -s UUID -o value ${LVM_DEVICE} > UUID_LVM_DEVICE.txt
-# #
-# vgcfgbackup -f VG_METADATA.backup "${VG_NAME}"s
-# chown 1000:1000 PV_UUID.txt
-# chown 1000:1000 VG_METADATA.backup
+#
+# MAIN_CRYPT_DEV="/dev/disk/by-label/${MAIN_CRYPT_LABEL}"
+# SECOND_CRYPT_DEV="/dev/disk/by-label/${SECOND_CRYPT_LABEL}"
+# LVM_DEVICE="/dev/mapper/${LVM_DECRYPTED_NAME}"
+#
+## backup PARTUUID and UUIDs of LVM and encrypted partitions (OPTIONAL)
+# echo "Backup PARTUUIDs and UUID for LUKS/LVM..."
+# blkid -s PARTUUID -o value "${MAIN_CRYPT_DEV}" > "${MAIN_CRYPT_LABEL}_PARTUUID.txt"
+# blkid -s PARTUUID -o value "${SECOND_CRYPT_DEV}" > "${SECOND_CRYPT_LABEL}_PARTUUID.txt"
+# blkid -s UUID -o value "${MAIN_CRYPT_DEV}" > "${MAIN_CRYPT_LABEL}_UUID.txt"
+# blkid -s UUID -o value "${SECOND_CRYPT_DEV}" > "${SECOND_CRYPT_LABEL}_UUID.txt"
+# blkid -s UUID -o value "${LVM_DEVICE}" > "${LVM_DECRYPTED_NAME}_UUID.txt"
+# chown 1000:1000 *.txt
+#
+## backup luks headers (OPTIONAL)
+#
+# echo "Backup LUKS header for main encrypted partition..."
+# cryptsetup luksHeaderBackup "${MAIN_CRYPT_DEV}" --header-backup-file "${MAIN_CRYPT_LABEL}_header_backup"
+# gpg --symmetric --output "${MAIN_CRYPT_LABEL}_header_backup.gpg" "${MAIN_CRYPT_LABEL}_header_backup"
+# shred --iterations=3 --zero --remove=wipesync "${MAIN_CRYPT_LABEL}_header_backup"
+#
+# echo "Backup LUKS header for second encrypted partition..."
+# cryptsetup luksHeaderBackup "${SECOND_CRYPT_DEV}" --header-backup-file "${SECOND_CRYPT_LABEL}_header_backup"
+# gpg --symmetric --output "${SECOND_CRYPT_LABEL}_header_backup.gpg" "${SECOND_CRYPT_LABEL}_header_backup"
+# shred --iterations=3 --zero --remove=wipesync "${SECOND_CRYPT_LABEL}_header_backup"
+# chown 1000:1000 *.gpg
+#
+## backup volume group metadata (OPTIONAL)
+#
+# echo "Backup volume group metadata..."
+# vgcfgbackup -f "${VG_NAME}_METADATA.backup" "${VG_NAME}"
+# chown 1000:1000 "${VG_NAME}_METADATA.backup"
 #
 ################################################################################################################

@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 ## PARTITIONS LABELS
-PARTITION_LABELS=("EFI" "WINMSR" "WINOS" "WINREC" "swap")
+PARTITION_LABELS=("EFI" "WINMSR" "WINOS" "WINREC")
 ##
 ## MAIN 
 ################################################################################################################
