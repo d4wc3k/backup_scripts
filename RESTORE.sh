@@ -1,8 +1,11 @@
 #!/bin/bash
 #
 ## PARTITIONS LABELS
-PARTITION_LABELS=("EFI" "WINMSR" "WINOS" "WINREC")
-##
+PARTITION_LABELS=("")
+#
+## Get password for encryption ( optional )
+# PASS_CRED=$(gpg --quiet --decrypt credentials.gpg)
+#
 ## MAIN 
 ################################################################################################################
 ## OPTIONAL restore partitions table with dd
@@ -55,6 +58,9 @@ do
 			## 7z compression
 			# 7z x -so "${FILE_NAME}" | partclone.dd -z 10485760 --source - -o "${DEV_PATH}"
 			#
+			## 7z compression and encryption
+			# 7z x -so -p"${PASS_CRED}" "${FILE_NAME}" | partclone.dd -z 10485760 --source - -o "${DEV_PATH}"
+			#
 			## gzip compression
 			# gzip -c -d "${FILE_NAME}" | partclone.dd -z 10485760 --source - -o "${DEV_PATH}"
 			#
@@ -64,8 +70,13 @@ do
 		else
 			## 7z compression
 			# 7z x -so "${FILE_NAME}" | partclone.$FS_TYPE -z 10485760 --source - -r -o  "${DEV_PATH}"
+			#
+			## 7z compression and encryption
+			# 7z x -so -p"${PASS_CRED}"  "${FILE_NAME}" | partclone.$FS_TYPE -z 10485760 --source - -r -o  "${DEV_PATH}"
+			#
 			## gzip compression
 			# gzip -c -d "${FILE_NAME}" | partclone.$FS_TYPE -z 10485760 --source - -r -o  "${DEV_PATH}"
+			#
 			## gzip with pigz compression
 			pigz -d -c "${FILE_NAME}" | partclone.$FS_TYPE -z 10485760 --source - -r -o  "${DEV_PATH}"
 			#

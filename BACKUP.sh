@@ -6,6 +6,9 @@ PARTITION_LABELS=("")
 MAIN_DISK_NAME="nvme-Samsung_SSD_970_EVO_Plus_1TB_S4EWNF0M910268J"
 SECOND_DISK_NAME="nvme-Samsung_SSD_980_1TB_S649NJ0R214022Y"
 #
+## Get password for encryption ( optional )
+# PASS_CRED=$(gpg --quiet --decrypt credentials.gpg)
+#
 ## LUKS encrypted partition labels ( optional )
 #
 # MAIN_CRYPT_LABEL="rcrypt"
@@ -44,7 +47,10 @@ do
 	if [ -z "${FS_TYPE}" ] || [ "${FS_TYPE}" = "swap" ];
 	then
 		## 7z compression
-		# partclone.dd  -z 10485760  -s "${DEV_PATH}" --output - | 7z a -t7z "${FILE_NAME}" -si -m0=lzma2 -mx=1 -mfb=64 -md512m -mmt8
+		# partclone.dd  -z 10485760  -s "${DEV_PATH}" --output - | 7z a -t7z "${FILE_NAME}" -si -m0=lzma2 -mx=5 -mfb=64 -md512m -mmt8
+		#
+		## 7z compression and encryption
+		# partclone.dd  -z 10485760  -s "${DEV_PATH}" --output - | 7z a -t7z -mhe=on -p"${PASS_CRED}" "${FILE_NAME}" -si -m0=lzma2 -mx=5 -mfb=64 -md512m -mmt8
 		#
 		## gzip compression
 		# partclone.dd  -z 10485760  -s "${DEV_PATH}" --output - | gzip -c -6 > "${FILE_NAME}"
@@ -54,7 +60,10 @@ do
 		#
 	else
 		## 7z compression
-		# partclone.$FS_TYPE -z 10485760  -c -s "${DEV_PATH}" --output - | 7z a -t7z "${FILE_NAME}" -si -m0=lzma2 -mx=1 -mfb=64 -md512m -mmt8
+		# partclone.$FS_TYPE -z 10485760  -c -s "${DEV_PATH}" --output - | 7z a -t7z  "${FILE_NAME}" -si -m0=lzma2 -mx=5 -mfb=64 -md512m -mmt8
+		#
+		## 7z compression and encryption
+		# partclone.$FS_TYPE -z 10485760  -c -s "${DEV_PATH}" --output - | 7z a -t7z -mhe=on -p"${PASS_CRED}" "${FILE_NAME}" -si -m0=lzma2 -mx=5 -mfb=64 -md512m -mmt8
 		#
 		## gzip compression
 		## partclone.$FS_TYPE -z 10485760  -c -s "${DEV_PATH}" --output - | gzip -c -6 > "${FILE_NAME}"
