@@ -1,0 +1,16 @@
+## DISKs devices names found in "/dev/disk/by-id/*"
+MAIN_DISK_NAME="nvme-Samsung_SSD_970_EVO_Plus_1TB_S4EWNF0M910268J"
+SECOND_DISK_NAME="nvme-Samsung_SSD_980_1TB_S649NJ0R214022Y"
+#
+#
+MAIN_DISK="/dev/disk/by-id/${MAIN_DISK_NAME}"
+dd if="${MAIN_DISK_NAME}_table.backup" of="${MAIN_DISK}" bs=512 status=progress
+#
+SECOND_DISK="/dev/disk/by-id/${SECOND_DISK_NAME}"
+dd if="${SECOND_DISK_NAME}_table.backup" of="${SECOND_DISK}" bs=512 status=progress
+#
+sync
+# fix partition tables with gdisk
+gdisk "${MAIN_DISK}"
+gdisk "${SECOND_DISK}"
+#

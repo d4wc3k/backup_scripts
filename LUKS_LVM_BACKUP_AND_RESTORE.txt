@@ -1,0 +1,50 @@
+#################################################################################################################
+## Backup LUKS_LVM metadata configuration (OPTIONAL)
+#
+MAIN_CRYPT_LABEL="rcrypt"
+SECOND_CRYPT_LABEL="dcrypt"
+LVM_DECRYPTED_NAME="lvm_unencrypted"
+VG_NAME="vg"
+#
+MAIN_CRYPT_DEV="/dev/disk/by-label/${MAIN_CRYPT_LABEL}"
+SECOND_CRYPT_DEV="/dev/disk/by-label/${SECOND_CRYPT_LABEL}"
+LVM_DEVICE="/dev/mapper/${LVM_DECRYPTED_NAME}"
+#
+## backup PARTUUID and UUIDs of LVM and encrypted partitions (OPTIONAL)
+echo "Backup PARTUUIDs and UUID for LUKS/LVM..."
+blkid -s PARTUUID -o value "${MAIN_CRYPT_DEV}" > "${MAIN_CRYPT_LABEL}_PARTUUID.txt"
+blkid -s PARTUUID -o value "${SECOND_CRYPT_DEV}" > "${SECOND_CRYPT_LABEL}_PARTUUID.txt"
+blkid -s UUID -o value "${MAIN_CRYPT_DEV}" > "${MAIN_CRYPT_LABEL}_UUID.txt"
+blkid -s UUID -o value "${SECOND_CRYPT_DEV}" > "${SECOND_CRYPT_LABEL}_UUID.txt"
+blkid -s UUID -o value "${LVM_DEVICE}" > "${LVM_DECRYPTED_NAME}_UUID.txt"
+chown 1000:1000 *.txt
+#
+################################################################################################################
+## backup luks headers (OPTIONAL)
+#
+echo "Backup LUKS header for main encrypted partition..."
+cryptsetup luksHeaderBackup "${MAIN_CRYPT_DEV}" --header-backup-file "${MAIN_CRYPT_LABEL}_header_backup"
+gpg --symmetric --output "${MAIN_CRYPT_LABEL}_header_backup.gpg" "${MAIN_CRYPT_LABEL}_header_backup"
+shred --iterations=3 --zero --remove=wipesync "${MAIN_CRYPT_LABEL}_header_backup"
+#
+echo "Backup LUKS header for second encrypted partition..."
+cryptsetup luksHeaderBackup "${SECOND_CRYPT_DEV}" --header-backup-file "${SECOND_CRYPT_LABEL}_header_backup"
+gpg --symmetric --output "${SECOND_CRYPT_LABEL}_header_backup.gpg" "${SECOND_CRYPT_LABEL}_header_backup"
+shred --iterations=3 --zero --remove=wipesync "${SECOND_CRYPT_LABEL}_header_backup"
+chown 1000:1000 *.gpg
+#
+## backup volume group metadata (OPTIONAL)
+#
+echo "Backup volume group metadata..."
+vgcfgbackup -f "${VG_NAME}_METADATA.backup" "${VG_NAME}"
+chown 1000:1000 "${VG_NAME}_METADATA.backup"
+#
+################################################################################################################
+# RESTORE LUKS_LVM metadata configuration (OPTIONAL)
+LVM_DEVICE="/dev/nvme1n1p6"
+VG_NAME="vg"
+UUID="xyz"
+pvcreate --uuid "${UUID}" --norestorefile "${LVM_DEVICE}"
+vgcfgrestore -f vg_backup "${VG_NAME}"
+#
+################################################################################################################
