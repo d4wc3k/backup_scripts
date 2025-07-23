@@ -1,7 +1,17 @@
 #!/bin/bash
 #
+## DISKs devices names found in "/dev/disk/by-id/*"
+# MAIN_DISK_NAME="nvme-Samsung_SSD_970_EVO_Plus_1TB_S4EWNF0M910268J"
+# SECOND_DISK_NAME="nvme-Samsung_SSD_980_1TB_S649NJ0R214022Y"
+#
 ## PARTITIONS LABELS
-PARTITION_LABELS=("")
+declare -A PARTITIONS=(["EFI"]="vfat" ["WINMSR"]="raw" ["WINOS"]="ntfs" ["WINREC"]="ntfs" ["WINDATA"]="ntfs" )
+#
+## Restore partition table (OPTIONAL)
+# MAIN_DISK="/dev/disk/by-id/${MAIN_DISK_NAME}"
+# dd if="${MAIN_DISK_NAME}_table.backup" of="${MAIN_DISK}" bs=512 status=progress
+# sync
+# gdisk "${MAIN_DISK}" 
 #
 ## Get password for encryption ( optional )
 # PASS_CRED=$(gpg --quiet --decrypt credentials.gpg)
@@ -25,9 +35,13 @@ PARTITION_LABELS=("")
 # vgcfgrestore -f vg_backup "${VG_NAME}"
 #
 ################################################################################################################
-for LABEL in "${PARTITION_LABELS[@]}"; 
+for PART in "${!PARTITIONS[@]}"; 
 do
-	echo "Processing ${LABEL} label."
+	LABEL="${PART}"
+	echo "Current partition label: ${LABEL}"
+	FILE_SYSTEM="${PARTITIONS[$LABEL]}"
+	echo "Current partition filesystem: ${FILE_SYSTEM}"
+	echo "Processing partition with ${LABEL} label and ${FILE_SYSTEM} filesystem"
 	PARTLABEL_DEV="/dev/disk/by-partlabel/${LABEL}"
 	if [[ -h "${PARTLABEL_DEV}" ]];
 	then
@@ -52,33 +66,40 @@ do
 	#
 	if [[ -f ${FILE_NAME} ]];
 	then
-		FS_TYPE=$(blkid -s TYPE -o value ${DEV_PATH})
-		if [ -z "${FS_TYPE}" ] || [ "${FS_TYPE}" = "swap" ];
+		if [ "${FILE_SYSTEM}" = "raw" ];
 		then
 			## 7z compression
-			# 7z x -so "${FILE_NAME}" | partclone.dd -z 10485760 --source - -o "${DEV_PATH}"
+			# echo "Restoring raw image for partition with $LABEL label."
+			# 7z x -so "${FILE_NAME}" | partclone.dd -N -z 10485760 --source - -o "${DEV_PATH}"
 			#
 			## 7z compression and encryption
-			# 7z x -so -p"${PASS_CRED}" "${FILE_NAME}" | partclone.dd -z 10485760 --source - -o "${DEV_PATH}"
+			# echo "Restoring raw image for partition with $LABEL label."
+			# 7z x -so -p"${PASS_CRED}" "${FILE_NAME}" | partclone.dd -N -z 10485760 --source - -o "${DEV_PATH}"
 			#
 			## gzip compression
-			# gzip -c -d "${FILE_NAME}" | partclone.dd -z 10485760 --source - -o "${DEV_PATH}"
+			# echo "Restoring raw image for $LABEL."
+			# gzip -c -d "${FILE_NAME}" | partclone.dd -N -z 10485760 --source - -o "${DEV_PATH}"
 			#
 			## gzip with pigz compression
-			pigz -d -c "${FILE_NAME}" | partclone.dd -z 10485760 --source - -o "${DEV_PATH}"
+			echo "Restoring raw image for partition with $LABEL label."
+			pigz -d -c "${FILE_NAME}" | partclone.dd -N -z 10485760 --source - -o "${DEV_PATH}"
 			#
 		else
 			## 7z compression
-			# 7z x -so "${FILE_NAME}" | partclone.$FS_TYPE -z 10485760 --source - -r -o  "${DEV_PATH}"
+			# echo "Restoring partclone image for partition with $LABEL label and ${FILE_SYSTEM} filesystem."
+			# 7z x -so "${FILE_NAME}" | partclone.$FILE_SYSTEM -N -z 10485760 --source - -r -o  "${DEV_PATH}"
 			#
 			## 7z compression and encryption
-			# 7z x -so -p"${PASS_CRED}"  "${FILE_NAME}" | partclone.$FS_TYPE -z 10485760 --source - -r -o  "${DEV_PATH}"
+			# echo "Restoring partclone image for partition with $LABEL label and ${FILE_SYSTEM} filesystem."
+			# 7z x -so -p"${PASS_CRED}"  "${FILE_NAME}" | partclone.$FILE_SYSTEM -N -z 10485760 --source - -r -o  "${DEV_PATH}"
 			#
 			## gzip compression
-			# gzip -c -d "${FILE_NAME}" | partclone.$FS_TYPE -z 10485760 --source - -r -o  "${DEV_PATH}"
+			# echo "Restoring partclone image for partition with $LABEL label and ${FILE_SYSTEM} filesystem."
+			# gzip -c -d "${FILE_NAME}" | partclone.$FILE_SYSTEM -N-z 10485760 --source - -r -o  "${DEV_PATH}"
 			#
 			## gzip with pigz compression
-			pigz -d -c "${FILE_NAME}" | partclone.$FS_TYPE -z 10485760 --source - -r -o  "${DEV_PATH}"
+			echo "Restoring partclone image for partition with $LABEL label and ${FILE_SYSTEM} filesystem."
+			pigz -d -c "${FILE_NAME}" | partclone.$FILE_SYSTEM -N -z 10485760 --source - -r -o  "${DEV_PATH}"
 			#
 		fi
 	else
