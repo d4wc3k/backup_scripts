@@ -1,0 +1,17 @@
+################################################################################################################
+BACKUP steps
+1) Open encrypted volumes
+2) Perform backup of filesystems ( creating compressed image files)
+3) Backup partition tables
+4) Backup PARTUUIDs and UUIDs for LUKS/LVM to text file (Optional)
+5) Backup luks headers and encrypted them (Optional)
+6) Backup physical volume UUID
+7) Backup volume group configuration
+################################################################################################################
+Restore
+1) Restore partition table
+2) Recreate missing luks partitions (restore of new creation)
+3) Recreate physical volume with earlier UUID.
+4) Restore volume group configuration from the file.
+5) Perform restoring filesystems from compressed backup files
+################################################################################################################
