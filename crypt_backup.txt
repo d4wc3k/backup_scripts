@@ -1,0 +1,66 @@
+###################################################################################################
+## Backing partitions with script or by hand 
+
+required packakes: pigz,partclone
+
+
+a) formatted partition
+
+partclone.$FILE_SYSTEM  -N  -z 10485760  -c -s "${DEV_PATH}" --output - | pigz -c --fast -b 1024 --rsyncable > "${FILE_NAME}"
+
+f.g
+
+partclone.ext4  -N  -z 10485760  -c -s /dev/mapper/vg-root --output - | pigz -c --fast -b 1024 --rsyncable > rootfs.img.gz
+
+b) raw partition
+
+partclone.dd -N -z 10485760  -s "${DEV_PATH}" --output - | pigz -c --fast -b 1024 --rsyncable > "${FILE_NAME}"
+
+f.g
+
+partclone.dd -N -z 10485760  -s /dev/mapper/vg-swap --output - | pigz -c --fast -b 1024 --rsyncable > swap.img.gz
+
+
+
+###################################################################################################
+## Making partition table backup
+
+
+dd if=${MAIN_DISK} of="main_disk_table.bin" bs=512 count=34 status=progress
+sfdisk --dump "${MAIN_DISK}" > main_disk_table_dump.txt
+
+f.g
+
+dd if=/dev/sda of="main_disk_table.bin" bs=512 count=34 status=progress
+sfdisk --dump /dev/sda > main_disk_table_dump.txt
+
+###################################################################################################
+
+## Save UUID for SWAP
+
+blkid -s UUID -o value $DEV > swap_UUID.txt
+
+blkid -s UUID -o value /dev/mapper/vg-swap > swap_UUID.txt
+
+###################################################################################################
+
+## Backing LUKS header
+
+cryptsetup luksHeaderBackup "${MAIN_CRYPT_DEV}" --header-backup-file "${MAIN_CRYPT_LABEL}_header_backup"
+gpg --symmetric --output "${MAIN_CRYPT_LABEL}_header_backup.gpg" "${MAIN_CRYPT_LABEL}_header_backup"
+shred --iterations=3 --zero --remove=wipesync "${MAIN_CRYPT_LABEL}_header_backup"
+
+###################################################################################################
+
+## Save UUID for PV
+
+blkid -s UUID -o value /dev/mapper/xyz > pv_UUID.txt
+
+###################################################################################################
+
+## Backup vg configuration
+
+
+vgcfgbackup -f vg_backup.txt vg
+
+###################################################################################################

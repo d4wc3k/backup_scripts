@@ -1,0 +1,60 @@
+###################################################################################################
+
+## Restore partition table
+
+dd if=main_disk_table.bin of=/dev/sda bs=512 status=progress 
+sync
+
+gdisk /dev/sda
+
+###################################################################################################
+
+## Restore luks Header
+
+gpg --decrypt --output "${MAIN_CRYPT_LABEL}_header_backup" "${MAIN_CRYPT_LABEL}_header_backup.gpg"
+
+cryptsetup luksHeaderRestore DEVICE --header-backup-file /path/to/backup_header_file
+
+###################################################################################################
+
+## recreate pv with previous UUID
+
+pvcreate --uuid "${UUID}" --norestorefile "${LVM_DEVICE}"
+
+
+###################################################################################################
+
+Restore vg config
+
+vgcfgrestore -f vg_backup "${VG_NAME}"
+
+
+vgchange -a y vg
+###################################################################################################
+
+
+## Restore partitions from images
+
+a)formatted
+
+pigz -d -c "${FILE_NAME}" | partclone.$FILE_SYSTEM -N -z 10485760 --source - -r -o  "${DEV_PATH}"
+
+f.g 
+
+pigz -d -c root.img.gz | partclone.ext4 -N -z 10485760 --source - -r -o  /dev/mapper/vg-root
+
+b) raw
+
+pigz -d -c "${FILE_NAME}" | partclone.dd -N -z 10485760 --source - -o "${DEV_PATH}"
+
+f.gd
+
+pigz -d -c swap.img.gz | partclone.dd -N -z 10485760 --source - -o /dev/mapper/vg-swap
+
+###################################################################################################
+
+## recreate swap
+
+mkswap -L Swap -U UUID /dev/mapper/vg-swap 
+
+###################################################################################################
