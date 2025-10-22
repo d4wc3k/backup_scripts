@@ -1,0 +1,39 @@
+##############################################################################################################################################################################
+## Testing  archives
+## gzip
+#
+gzip -v -t $file_name
+f.g
+gzip -v -t efi.img.gz
+# 
+## 7z
+#
+7z t $file_name
+f.g
+7z t efi.img.gz
+#
+## rar
+#
+rar t $file_name 
+rar vta $file_name
+f.g
+rar t efi.img.gz
+rar vta efi.img.gz
+#
+##############################################################################################################################################################################
+## checking partclone images
+#
+gzip -d -c $file_name | partclone.chkimg -s - -N
+OR
+rar p $file_name | partclone.chkimg -s - -N
+OR
+7z x -so $file_name | partclone.chkimg -s - -N
+#
+## f.g
+gzip -d -c efi.img.gz | partclone.chkimg -s - -N
+OR
+rar p efi.img.gz | partclone.chkimg -s - -N
+OR
+7z x -so efi.img.gz | partclone.chkimg -s - -N
+#
+##############################################################################################################################################################################
